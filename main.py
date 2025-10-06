@@ -1,3 +1,5 @@
+# main.py
+
 import pygame
 from game.game_engine import GameEngine
 
@@ -10,37 +12,40 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ping Pong - Pygame Version")
 
 # Colors
-WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 # Clock
 clock = pygame.time.Clock()
 FPS = 60
 
-# Game loop
+# Create the game engine
 engine = GameEngine(WIDTH, HEIGHT)
 
 def main():
     running = True
     while running:
-        SCREEN.fill(BLACK)
+        # Event handling is now passed to the engine
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            # Let the engine handle game-specific input
+            engine.process_input(event)
 
-        engine.handle_input()
+        # Check the engine's quit flag
+        if engine.should_quit:
+            running = False
+
+        # Clear screen
+        SCREEN.fill(BLACK)
+        
+        # Update and Render game state
         engine.update()
         engine.render(SCREEN)
 
-        # --- NEW: HANDLE GAME OVER EXIT ---
-        if engine.game_over:
-            pygame.display.flip() # Update the screen one last time to show the message
-            pygame.time.delay(3000) # Wait for 3 seconds (3000 milliseconds)
-            running = False # End the game loop
-        else:
-            pygame.display.flip() # Normal screen update
-        # --- END OF NEW EXIT LOGIC ---
-
+        # Update the display
+        pygame.display.flip()
+        
+        # Control the frame rate
         clock.tick(FPS)
 
     pygame.quit()
