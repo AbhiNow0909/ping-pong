@@ -32,7 +32,15 @@ def main():
         engine.update()
         engine.render(SCREEN)
 
-        pygame.display.flip()
+        # --- NEW: HANDLE GAME OVER EXIT ---
+        if engine.game_over:
+            pygame.display.flip() # Update the screen one last time to show the message
+            pygame.time.delay(3000) # Wait for 3 seconds (3000 milliseconds)
+            running = False # End the game loop
+        else:
+            pygame.display.flip() # Normal screen update
+        # --- END OF NEW EXIT LOGIC ---
+
         clock.tick(FPS)
 
     pygame.quit()

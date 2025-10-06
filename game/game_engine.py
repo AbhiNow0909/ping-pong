@@ -5,6 +5,7 @@ from .ball import Ball
 # Game Engine
 
 WHITE = (255, 255, 255)
+WINNING_SCORE = 5 
 
 class GameEngine:
     def __init__(self, width, height):
@@ -21,36 +22,62 @@ class GameEngine:
         self.ai_score = 0
         self.font = pygame.font.SysFont("Arial", 30)
 
+        # --- NEW ATTRIBUTES FOR GAME OVER ---
+        self.game_over = False
+        self.winner_text = ""
+        self.game_over_font = pygame.font.SysFont("Arial", 60) 
+        # --- END OF NEW ATTRIBUTES ---
+
     def handle_input(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            self.player.move(-10, self.height)
-        if keys[pygame.K_s]:
-            self.player.move(10, self.height)
+        # Only handle input if the game is not over
+        if not self.game_over:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_w]:
+                self.player.move(-10, self.height)
+            if keys[pygame.K_s]:
+                self.player.move(10, self.height)
+
+    def check_for_winner(self):
+        if self.player_score >= WINNING_SCORE:
+            self.winner_text = "Player Wins!"
+            self.game_over = True
+        elif self.ai_score >= WINNING_SCORE:
+            self.winner_text = "AI Wins!"
+            self.game_over = True
 
     def update(self):
-        self.ball.move()
-        if self.ball.velocity_x < 0: 
-            if self.player.rect().colliderect(self.ball.rect()):
-                self.ball.velocity_x *= -1
-                self.ball.x = self.player.rect().right
+        # Only update game logic if the game is not over
+        if not self.game_over:
+            self.ball.move()
 
-        if self.ball.velocity_x > 0: 
-            if self.ai.rect().colliderect(self.ball.rect()):
-                self.ball.velocity_x *= -1
-                self.ball.x = self.ai.rect().left - self.ball.width
+            # Check for collision with the player's paddle
+            if self.ball.velocity_x < 0:
+                if self.player.rect().colliderect(self.ball.rect()):
+                    self.ball.velocity_x *= -1
+                    self.ball.x = self.player.rect().right
 
-        if self.ball.x <= 0:
-            self.ai_score += 1
-            self.ball.reset()
-        elif self.ball.x + self.ball.width >= self.width: 
-            self.player_score += 1
-            self.ball.reset()
+            # Check for collision with the AI's paddle
+            if self.ball.velocity_x > 0:
+                if self.ai.rect().colliderect(self.ball.rect()):
+                    self.ball.velocity_x *= -1
+                    self.ball.x = self.ai.rect().left - self.ball.width
 
-        self.ai.auto_track(self.ball, self.height)
+            # Check for scoring
+            if self.ball.x <= 0:
+                self.ai_score += 1
+                self.ball.reset()
+                self.check_for_winner() # Check for a winner after a score
+            elif self.ball.x + self.ball.width >= self.width:
+                self.player_score += 1
+                self.ball.reset()
+                self.check_for_winner() # Check for a winner after a score
+
+            # Update the AI's position
+            self.ai.auto_track(self.ball, self.height)
+
 
     def render(self, screen):
-        # Draw paddles and ball
+        # Always draw the game elements
         pygame.draw.rect(screen, WHITE, self.player.rect())
         pygame.draw.rect(screen, WHITE, self.ai.rect())
         pygame.draw.ellipse(screen, WHITE, self.ball.rect())
@@ -61,3 +88,10 @@ class GameEngine:
         ai_text = self.font.render(str(self.ai_score), True, WHITE)
         screen.blit(player_text, (self.width//4, 20))
         screen.blit(ai_text, (self.width * 3//4, 20))
+
+        # --- NEW: RENDER GAME OVER TEXT ---
+        if self.game_over:
+            text_surface = self.game_over_font.render(self.winner_text, True, WHITE)
+            text_rect = text_surface.get_rect(center=(self.width / 2, self.height / 2))
+            screen.blit(text_surface, text_rect)
+        # --- END OF NEW RENDER LOGIC ---
