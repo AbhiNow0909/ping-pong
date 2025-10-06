@@ -30,12 +30,20 @@ class GameEngine:
 
     def update(self):
         self.ball.move()
-        self.ball.check_collision(self.player, self.ai)
+        if self.ball.velocity_x < 0: 
+            if self.player.rect().colliderect(self.ball.rect()):
+                self.ball.velocity_x *= -1
+                self.ball.x = self.player.rect().right
+
+        if self.ball.velocity_x > 0: 
+            if self.ai.rect().colliderect(self.ball.rect()):
+                self.ball.velocity_x *= -1
+                self.ball.x = self.ai.rect().left - self.ball.width
 
         if self.ball.x <= 0:
             self.ai_score += 1
             self.ball.reset()
-        elif self.ball.x >= self.width:
+        elif self.ball.x + self.ball.width >= self.width: 
             self.player_score += 1
             self.ball.reset()
 
