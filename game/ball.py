@@ -18,16 +18,10 @@ class Ball:
         self.x += self.velocity_x
         self.y += self.velocity_y
 
-        # Bounce off top and bottom walls
-        if self.y <= 0 or self.y + self.height >= self.screen_height:
-            self.velocity_y *= -1
-
-    # The check_collision method has been removed from here.
-
     def reset(self):
         self.x = self.original_x
         self.y = self.original_y
-        self.velocity_x *= -1 # Reverse direction for the next serve
+        self.velocity_x *= -1
         self.velocity_y = random.choice([-3, 3])
 
     def rect(self):
